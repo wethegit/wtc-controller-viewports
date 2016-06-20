@@ -8,9 +8,11 @@
   - *Requirements*    jquery   ElementController   wethecollective.utilities.Scroller
   - *Description*     These are two classes that are used for inserting and maintinaing viewports. This is useful for running code when the user scrolls a particular viewport into view.
   - *Edited by*       Liam Egan
-  - *Edited*          2016-06-17 16:39:33
+  - *Edited*          2016-06-20 11:52:02
   - *Version*         0.8
 */
+; 'use strict';
+
 (function() {
   var _base;
 
