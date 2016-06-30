@@ -185,8 +185,10 @@
         return instance != null ? instance : instance = new ViewportManagerPrivate($(selector));
       };
       ViewportManager.init = function() {};
+
+      return ViewportManager;
     })();
-    
+
     NS.Viewport = (function()
     {
       __extends(Viewport, wtc.controller.ElementController);
@@ -369,6 +371,8 @@
         }
       };
       Viewport.prototype.reset = function(fillDirection) {};
+
+      return Viewport;
     })();
   })(jQuery, window.wtc.controller);
 })();
