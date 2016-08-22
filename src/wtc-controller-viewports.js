@@ -11,9 +11,8 @@
   - *Edited*          2016-06-20 11:52:02
   - *Version*         0.8
 */
-; 'use strict';
-
-(function() {
+;(function() {
+  'use strict';
   var _base;
 
   var __slice = Array.prototype.slice;
@@ -35,8 +34,8 @@
     child.__super__ = parent.prototype;
     return child;
   };
-  window.wtc || (window.wtc = {});
-  (_base = window.wtc).controller || (_base.controller = {});
+  window.wtc = window.wtc || {};
+  window.wtc.controller = window.wtc.controller || {};
 
   return (function($, NS)
   {
@@ -56,6 +55,7 @@
         {
           var op;
           this.$element = $element;
+          this.reverse = ($element.attr('data-reverse') && $element.attr('data-reverse') == 'true') ? true : false;
           op = this;
           $w.resize(function(e)
           {
@@ -93,7 +93,8 @@
           if (!exists) {
             this.VPs.push(VP);
           }
-          return VP.ID = this.VPs.length - 1;
+          VP.ID = this.VPs.length - 1;
+          return VP.ID;
         };
         ViewportManagerPrivate.prototype.unregisterViewport = function(VP)
         {
@@ -179,10 +180,10 @@
       })();
       ViewportManager.get = function(selector)
       {
-        if (selector == null) {
+        if (selector === null) {
           selector = selector;
         }
-        return instance != null ? instance : instance = new ViewportManagerPrivate($(selector));
+        return instance !== null ? instance : instance = new ViewportManagerPrivate($(selector));
       };
       ViewportManager.init = function() {};
 
@@ -233,7 +234,7 @@
       };
       Viewport.prototype.resize = function(set)
       {
-        if (set == null) {
+        if (set === null) {
           set = false;
         }
         this.top = this.$element.offset().top;
@@ -259,19 +260,19 @@
       Viewport.prototype.getIsOnScreen = function(screen)
       {
         var _ref, _ref2;
-        if (screen == null)
+        if (screen === null)
         {
           screen = {};
         }
-        if ((_ref = screen.top) == null)
+        if ((_ref = screen.top) === null)
         {
           screen.top = 0;
         }
-        if ((_ref2 = screen.bottom) == null)
+        if ((_ref2 = screen.bottom) === null)
         {
           screen.bottom = 500;
         }
-        if (!(this.top != null))
+        if (!(this.top !== null))
         {
           this.resize();
         }
@@ -303,7 +304,9 @@
         {
           classString = 'vp-onscreen vp-on-10 vp-on-20 vp-on-30 vp-on-40 vp-on-50 vp-on-60 vp-on-70 vp-on-80 vp-on-90 vp-on-100';
           classString += ' vp-b-10 vp-b-20 vp-b-30 vp-b-40 vp-b-50 vp-b-60 vp-b-70 vp-b-80 vp-b-90 vp-b-100';
-          this.$element.removeClass(classString);
+          if(this.reverse) {
+            this.$element.removeClass(classString);
+          }
           this.$element.addClass('vp-onscreen');
           if (topPercent >= 10) {
             this.$element.addClass('vp-on-10 vp-onf-10');
