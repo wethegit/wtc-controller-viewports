@@ -31,7 +31,7 @@ class ViewportManager {
       this.resize(e);
     });
 
-    Scroller.instance().bind('scroll', () => {
+    Scroller.instance.bind('scroll', () => {
       let args = 1 <= arguments.length ? [].slice.call(arguments, 0) : [];
       this.onScroll.apply(this, args);
     });
@@ -161,7 +161,7 @@ class Viewport extends ElementController {
     this.ID = null;
     this.reverse = (this.element.getAttribute('data-reverse') && this.element.getAttribute('data-reverse') == 'true') ? true : false;
 
-    ViewportManager.instance().registerViewport(this);
+    ViewportManager.instance.registerViewport(this);
   }
 
   elementExistsInDOM() {
@@ -183,7 +183,7 @@ class Viewport extends ElementController {
   tidy() {
     let exists = this.elementExistsInDOM();
     if (!exists) {
-      return ViewportManager.instance().unregisterViewport(this);
+      return ViewportManager.instance.unregisterViewport(this);
     }
   }
 
