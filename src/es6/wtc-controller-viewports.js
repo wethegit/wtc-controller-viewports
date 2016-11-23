@@ -31,7 +31,7 @@ class ViewportManager {
       this.resize(e);
     });
 
-    Scroller.get().bind('scroll', () => {
+    Scroller.instance().bind('scroll', () => {
       let args = 1 <= arguments.length ? [].slice.call(arguments, 0) : [];
       this.onScroll.apply(this, args);
     });
