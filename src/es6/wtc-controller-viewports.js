@@ -122,7 +122,7 @@ class ViewportManager {
           item.runAnimation(topPercent, bottomPercent, middlePercent);
         }
         catch (e) {
-          console.warn(this.element.getAttribute('id'), e.message);
+          console.warn(item.element.getAttribute('id'), e.message);
         }
       }
       else {
@@ -243,31 +243,31 @@ class Viewport extends ElementController {
       classString += ' vp-b-10 vp-b-20 vp-b-30 vp-b-40 vp-b-50 vp-b-60 vp-b-70 vp-b-80 vp-b-90 vp-b-100';
 
       if(this.reverse) {
-        _u.removeClass(this.element, classString);
+        _u.removeClass(classString, this.element);
       }
 
-      _u.addClass(this.element, 'vp-onscreen');
+      _u.addClass('vp-onscreen', this.element);
 
       if (topPercent >= 10) {
-        _u.addClass(this.element, 'vp-on-10 vp-onf-10');
+        _u.addClass('vp-on-10 vp-onf-10', this.element);
         if (topPercent >= 20) {
-          _u.addClass(this.element, 'vp-on-20 vp-onf-20');
+          _u.addClass('vp-on-20 vp-onf-20', this.element);
           if (topPercent >= 30) {
-            _u.addClass(this.element, 'vp-on-30 vp-onf-30');
+            _u.addClass('vp-on-30 vp-onf-30', this.element);
             if (topPercent >= 40) {
-              _u.addClass(this.element, 'vp-on-40 vp-onf-40');
+              _u.addClass('vp-on-40 vp-onf-40', this.element);
               if (topPercent >= 50) {
-                _u.addClass(this.element, 'vp-on-50 vp-onf-50');
+                _u.addClass('vp-on-50 vp-onf-50', this.element);
                 if (topPercent >= 60) {
-                  _u.addClass(this.element, 'vp-on-60 vp-onf-60');
+                  _u.addClass('vp-on-60 vp-onf-60', this.element);
                   if (topPercent >= 70) {
-                    _u.addClass(this.element, 'vp-on-70 vp-onf-70');
+                    _u.addClass('vp-on-70 vp-onf-70', this.element);
                     if (topPercent >= 80) {
-                      _u.addClass(this.element, 'vp-on-80 vp-onf-80');
+                      _u.addClass('vp-on-80 vp-onf-80', this.element);
                       if (topPercent >= 90) {
-                        _u.addClass(this.element, 'vp-on-90 vp-onf-90');
+                        _u.addClass('vp-on-90 vp-onf-90', this.element);
                         if (topPercent >= 100) {
-                          _u.addClass(this.element, 'vp-on-100 vp-onf-100');
+                          _u.addClass('vp-on-100 vp-onf-100', this.element);
                         }
                       }
                     }
@@ -279,25 +279,25 @@ class Viewport extends ElementController {
         }
       }
       if (bottomPercent >= 10) {
-        _u.addClass(this.element, 'vp-b-10 vp-bf-10');
+        _u.addClass('vp-b-10 vp-bf-10', this.element);
         if (bottomPercent >= 20) {
-          _u.addClass(this.element, 'vp-b-20 vp-bf-20');
+          _u.addClass('vp-b-20 vp-bf-20', this.element);
           if (bottomPercent >= 30) {
-            _u.addClass(this.element, 'vp-b-30 vp-bf-30');
+            _u.addClass('vp-b-30 vp-bf-30', this.element);
             if (bottomPercent >= 40) {
-              _u.addClass(this.element, 'vp-b-40 vp-bf-40');
+              _u.addClass('vp-b-40 vp-bf-40', this.element);
               if (bottomPercent >= 50) {
-                _u.addClass(this.element, 'vp-b-50 vp-bf-50');
+                _u.addClass('vp-b-50 vp-bf-50', this.element);
                 if (bottomPercent >= 60) {
-                  _u.addClass(this.element, 'vp-b-60 vp-bf-60');
+                  _u.addClass('vp-b-60 vp-bf-60', this.element);
                   if (bottomPercent >= 70) {
-                    _u.addClass(this.element, 'vp-b-70 vp-bf-70');
+                    _u.addClass('vp-b-70 vp-bf-70', this.element);
                     if (bottomPercent >= 80) {
-                      _u.addClass(this.element, 'vp-b-80 vp-bf-80');
+                      _u.addClass('vp-b-80 vp-bf-80', this.element);
                       if (bottomPercent >= 90) {
-                        _u.addClass(this.element, 'vp-b-90 vp-bf-90');
+                        _u.addClass('vp-b-90 vp-bf-90', this.element);
                         if (bottomPercent >= 100) {
-                          return _u.addClass(this.element, 'vp-b-100 vp-bf-100');
+                          return _u.addClass('vp-b-100 vp-bf-100', this.element);
                         }
                       }
                     }
