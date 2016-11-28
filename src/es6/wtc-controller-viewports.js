@@ -301,6 +301,6 @@ class Viewport extends ElementController {
 }
 
 // Register
-ExecuteControllers.registerController('Viewport', Viewport);
+ExecuteControllers.registerController(Viewport);
 
 export {ViewportManager as default, Viewport};
