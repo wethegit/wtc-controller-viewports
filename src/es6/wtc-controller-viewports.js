@@ -12,7 +12,7 @@
   - *Version*         0.8
 */
 import Scroller from 'wtc-scroller';
-import ElementController from 'wtc-controller-element';
+import {default as ElementController, ExecuteControllers}  from 'wtc-controller-element';
 import _u from 'wtc-utility-helpers';
 
 let instance = null;
@@ -299,5 +299,8 @@ class Viewport extends ElementController {
 
   }
 }
+
+// Register
+ExecuteControllers.registerController('Viewport', Viewport);
 
 export {ViewportManager as default, Viewport};
