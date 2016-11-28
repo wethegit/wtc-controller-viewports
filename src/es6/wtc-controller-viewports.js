@@ -164,22 +164,6 @@ class Viewport extends ElementController {
     ViewportManager.instance.registerViewport(this);
   }
 
-  elementExistsInDOM() {
-    let exists = this.element && this.element[0];
-    if (!exists) {
-      return false;
-    }
-
-    let element = this.element[0];
-    while (element) {
-      if (element === document) {
-        return true;
-      }
-      element = element.parentNode;
-    }
-    return false;
-  }
-
   tidy() {
     let exists = this.elementExistsInDOM();
     if (!exists) {
