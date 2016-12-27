@@ -188,13 +188,17 @@ class Viewport extends ElementController {
   }
 
   resize(set = false) {
-    this.top = this.element.getBoundingClientRect().top;
+    this.top = this.absoluteTopPosition;
     this.height = this.element.offsetHeight;
     this.bottom = this.top + this.height;
   }
 
+  static get absoluteTopPosition() {
+    return this.element.getBoundingClientRect().top + window.scrollY;
+  }
+
   static get middlePoint() {
-    return (window.innerHeight / 2) + window.pageYOffset - this.element.getBoundingClientRect().top;
+    return (window.innerHeight / 2) + window.pageYOffset - absoluteTopPosition;
   }
 
   static get top() {
@@ -206,7 +210,7 @@ class Viewport extends ElementController {
   }
 
   static get offsetMiddle() {
-    return this.element.offset().top + this.element.height() / 2;
+    return this.absoluteTopPosition + this.element.height() / 2;
   }
 
   isOnScreen(screen = {top: 0, bottom: 500}) {
