@@ -12,7 +12,7 @@
   - *Version*         0.8
 */
 import Scroller from 'wtc-scroller';
-import ElementController from 'wtc-controller-element';
+import {default as ElementController, ExecuteControllers}  from 'wtc-controller-element';
 import _u from 'wtc-utility-helpers';
 
 let instance = null;
@@ -164,22 +164,6 @@ class Viewport extends ElementController {
     ViewportManager.instance.registerViewport(this);
   }
 
-  elementExistsInDOM() {
-    let exists = this.element && this.element[0];
-    if (!exists) {
-      return false;
-    }
-
-    let element = this.element[0];
-    while (element) {
-      if (element === document) {
-        return true;
-      }
-      element = element.parentNode;
-    }
-    return false;
-  }
-
   tidy() {
     let exists = this.elementExistsInDOM();
     if (!exists) {
@@ -198,7 +182,7 @@ class Viewport extends ElementController {
   }
 
   static get middlePoint() {
-    return (window.innerHeight / 2) + window.pageYOffset - absoluteTopPosition;
+    return (window.innerHeight / 2) + window.pageYOffset - this.absoluteTopPosition;
   }
 
   static get top() {
@@ -319,5 +303,8 @@ class Viewport extends ElementController {
 
   }
 }
+
+// Register
+ExecuteControllers.registerController(Viewport, 'Viewport');
 
 export {ViewportManager as default, Viewport};
