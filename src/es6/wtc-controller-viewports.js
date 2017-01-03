@@ -177,8 +177,12 @@ class Viewport extends ElementController {
     this.bottom = this.top + this.height;
   }
 
+  get scrollY() {
+    return window.scrollY || window.pageYOffset;
+  }
+
   get absoluteTopPosition() {
-    return this.element.getBoundingClientRect().top + window.scrollY;
+    return this.element.getBoundingClientRect().top + this.scrollY;
   }
 
   static get middlePoint() {
