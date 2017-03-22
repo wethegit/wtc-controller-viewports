@@ -204,7 +204,11 @@ class Viewport extends ElementController {
   }
 
   isOnScreen(screen = {top: 0, bottom: 500}) {
+<<<<<<< HEAD
     let display = this.element.currentStyle ? this.element.currentStyle.display : getComputedStyle(this.element, null).display;
+=======
+    let display = item.element.currentStyle ? item.element.currentStyle.display : getComputedStyle(item.element, null).display;
+>>>>>>> db774bf1235990a122f257f53c734ec88db80e95
     let pos = this.element.getBoundingClientRect();
 
     // when top and bottom are 0 the item is inside a wrapper with display none
