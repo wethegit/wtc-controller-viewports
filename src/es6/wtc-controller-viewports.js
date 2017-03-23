@@ -185,7 +185,8 @@ class Viewport extends ElementController {
   }
 
   get scrollY() {
-    return this.winTop;
+    let doc = document.documentElement;
+    return (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);
   }
 
   get absoluteTopPosition() {
