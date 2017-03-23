@@ -97,8 +97,13 @@ class ViewportManager {
     });
   }
 
+  get winTop() {
+    let doc = document.documentElement;
+    return (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);
+  }
+
   onScroll(top, middle, bottom) {
-    top = window.pageYOffset;
+    top = this.winTop;
     let win_height = window.innerHeight;
     bottom = win_height + top;
     middle = top + win_height / 2;
@@ -180,7 +185,7 @@ class Viewport extends ElementController {
   }
 
   get scrollY() {
-    return window.scrollY || window.pageYOffset;
+    return this.winTop;
   }
 
   get absoluteTopPosition() {
@@ -204,11 +209,7 @@ class Viewport extends ElementController {
   }
 
   isOnScreen(screen = {top: 0, bottom: 500}) {
-<<<<<<< HEAD
     let display = this.element.currentStyle ? this.element.currentStyle.display : getComputedStyle(this.element, null).display;
-=======
-    let display = item.element.currentStyle ? item.element.currentStyle.display : getComputedStyle(item.element, null).display;
->>>>>>> db774bf1235990a122f257f53c734ec88db80e95
     let pos = this.element.getBoundingClientRect();
 
     // when top and bottom are 0 the item is inside a wrapper with display none
@@ -216,9 +217,7 @@ class Viewport extends ElementController {
       return false;
     }
 
-    if (!this.top) {
-      this.resize();
-    }
+    this.resize();
 
     if (this.element.data.debug === true) {
       console.warn(' ');
