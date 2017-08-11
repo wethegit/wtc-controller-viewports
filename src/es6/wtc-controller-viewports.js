@@ -125,6 +125,7 @@ class ViewportManager {
         }
         catch (e) {
           console.warn(item.element.getAttribute('id'), e.message);
+          window.lastViewportError = e;
         }
       }
       else {
