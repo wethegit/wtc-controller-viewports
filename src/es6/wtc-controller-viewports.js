@@ -8,7 +8,7 @@
   - *Requirements*    jquery   ElementController   wethecollective.utilities.Scroller
   - *Description*     These are two classes that are used for inserting and maintinaing viewports. This is useful for running code when the user scrolls a particular viewport into view.
   - *Edited by*       marlonmarcello
-  - *Edited*          2017-01-09 11:02:45
+  - *Edited*          2017-01-09 11:05:51
   - *Version*         0.8
 */
 import Scroller from 'wtc-scroller';
@@ -36,7 +36,7 @@ class ViewportManager {
       this.onScroll.apply(this, args);
     });
 
-    this.trigger();
+    Scroller.instance.trigger('scroll');
   }
 
   static get instance() {
@@ -97,8 +97,13 @@ class ViewportManager {
     });
   }
 
+  get winTop() {
+    let doc = document.documentElement;
+    return (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);
+  }
+
   onScroll(top, middle, bottom) {
-    top = window.pageYOffset;
+    top = this.winTop;
     let win_height = window.innerHeight;
     bottom = win_height + top;
     middle = top + win_height / 2;
@@ -181,7 +186,8 @@ class Viewport extends ElementController {
   }
 
   get scrollY() {
-    return window.scrollY || window.pageYOffset;
+    let doc = document.documentElement;
+    return (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);
   }
 
   get absoluteTopPosition() {
@@ -205,9 +211,15 @@ class Viewport extends ElementController {
   }
 
   isOnScreen(screen = {top: 0, bottom: 500}) {
-    if (!this.top) {
-      this.resize();
+    let display = this.element.currentStyle ? this.element.currentStyle.display : getComputedStyle(this.element, null).display;
+    let pos = this.element.getBoundingClientRect();
+
+    // when top and bottom are 0 the item is inside a wrapper with display none
+    if ((pos.bottom === 0 && pos.top === 0) || display == 'none') {
+      return false;
     }
+
+    this.resize();
 
     if (this.element.data.debug === true) {
       console.warn(' ');
