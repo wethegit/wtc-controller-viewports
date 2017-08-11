@@ -129,8 +129,7 @@ class ViewportManager {
           item.runAnimation(topPercent, bottomPercent, middlePercent);
         }
         catch (e) {
-          console.warn(item.element.getAttribute('id'), e.message);
-          window.lastViewportError = e;
+          console.warn(item.element.getAttribute('id'), e.message, e.stack);
         }
       }
       else {
