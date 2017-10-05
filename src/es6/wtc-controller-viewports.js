@@ -7,9 +7,9 @@
   - *namespace*       com.wtc.utilities
   - *Requirements*    jquery   ElementController   wethecollective.utilities.Scroller
   - *Description*     These are two classes that are used for inserting and maintinaing viewports. This is useful for running code when the user scrolls a particular viewport into view.
-  - *Edited by*       marlonmarcello
-  - *Edited*          2017-01-09 11:05:51
-  - *Version*         0.8
+  - *Edited by*       liamegan
+  - *Edited*          2017-10-05
+  - *Version*         1.0.22
 */
 import Scroller from 'wtc-scroller';
 import {default as ElementController, ExecuteControllers}  from 'wtc-controller-element';
@@ -67,6 +67,12 @@ class ViewportManager {
     }
 
     VP.ID = this.VPs.length - 1;
+    
+    // This triggers the scroll event after a time after every viewport add
+    if(this.scrollTriggerTimeout) clearTimeout(this.scrollTriggerTimeout);
+    this.scrollTriggerTimeout = setTimeout(()=> {
+      Scroller.instance.trigger('scroll');
+    }, 500)
 
     return VP.ID;
   }
