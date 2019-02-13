@@ -75,6 +75,8 @@ class Viewport extends ElementController {
     if(this.element.querySelector('.vp-debug')) {
       this._debugElement = this.element.querySelector('.vp-debug');
     }
+
+    this.element.classList.add(`${this.classPrefix}--initialised`);
   }
   
   /**
