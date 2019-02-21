@@ -162,11 +162,30 @@ class Viewport extends ElementController {
   set scrollPos(value) {
     if(!isNaN(value) && value != this.scrollPos) {
       this._scrollPos = value;
-      this.top = this.element.offsetTop - value;
+      this.top = this.offsetTop - value;
     }
   }
   get scrollPos() {
     return this._scrollPos || -1;
+  }
+
+  /**
+   * (getter) Find the offsetTop to the document top. Loop through the
+   * offset parents of this element and add their tops to the 
+   * larger value.
+   *
+   * @type {number}
+   * @readonly
+   * @default 0
+   */
+  get offsetTop() {
+    let el = this.element;
+    let offsetTop = 0;
+    while(el.offsetParent) {
+      offsetTop += el.offsetTop;
+      el = el.offsetParent;
+    }
+    return offsetTop;
   }
   
 	/**
