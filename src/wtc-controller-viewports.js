@@ -7,375 +7,418 @@
   - *namespace*       com.wtc.utilities
   - *Requirements*    jquery   ElementController   wethecollective.utilities.Scroller
   - *Description*     These are two classes that are used for inserting and maintinaing viewports. This is useful for running code when the user scrolls a particular viewport into view.
-  - *Edited by*       Liam Egan
-  - *Edited*          2016-06-20 11:52:02
-  - *Version*         0.8
+  - *Edited by*       liamegan
+  - *Edited*          2017-10-05
+  - *Version*         1.0.22
 */
-;(function() {
-  'use strict';
-  var _base;
+import {default as ElementController, ExecuteControllers}  from 'wtc-controller-element';
+import _u from 'wtc-utility-helpers';
 
-  var __slice = Array.prototype.slice;
-  var __indexOf = Array.prototype.indexOf || function(item)
-  {
-    for (var i = 0, l = this.length; i < l; i++)
-    {
-      if (this[i] === item) return i;
+/**
+ * The Viewport class is a controller that provides information on
+ * the position of the element within the window. It does this through
+ * a combination of IntersectionObserver and request animation frame.
+ *
+ * This class extends the element controller and requires registration
+ * with the Execute controllers system in order to be instanciated as
+ * a component (ie with <element data-controller="Viewport" />)
+ *
+ * @class Viewport
+ * @augments ElementController
+ * @author Liam Egan <liam@wethecollective.com>
+ * @version 2.0.0
+ * @created Jan 30, 2019
+ */
+class Viewport extends ElementController {
+  /**
+   * The Viewport Class constructor
+   *
+   * @constructor
+   * @param {HTMLElement} element 				The element to use
+   * @param {object} settings             A settings object that allows settings to be passed to the raw class. These settings are:
+   * - `vpprefix`           The prefix for the classnames
+   * - `vpstoptopthreshold` The threshold to stop the execution of at
+   * - `animationCallback`  The function to run on animation. Takes the same three parameters as the runAnimation method
+   */
+  constructor(element, settings = {}) {
+    super(element);
+
+    // set up the class prefix either data-vppefix. Defaults to "vp"
+    this.classPrefix = settings.vpprefix || 'vp';
+
+    // Sets up the stop threshold for the element, if it exists
+    this.stopTopThreshold = settings.vpstoptopthreshold;
+
+    // add the animation callback, if provided
+    this.animationCallback = settings.animationCallback;
+
+    // Bing all of the callbacks
+    this._onObserve = this._onObserve.bind(this);
+    this._onPlay = this._onPlay.bind(this);
+    this._onResize = this._onResize.bind(this);
+    this._onTidy = this._onTidy.bind(this);
+    
+    // Check for tidy up every 5 seconds
+    this.tidyInterval = setInterval(this._onTidy, 5000);
+
+    // bind the resize handler
+    window.addEventListener('resize', this._onResize);
+    this._onResize();
+
+    if ('IntersectionObserver' in window) {
+      // create the intersection ovserver
+      this.observer = new IntersectionObserver(this._onObserve, {
+          rootMargin: '0%',
+          threshold: [.1]
+        });
+      this.observer.observe(this.element);
     }
-    return -1;
-  };
-  var __hasProp = Object.prototype.hasOwnProperty;
-  var __extends = function(child, parent)
-  {
-    for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
-    function ctor() { this.constructor = child; }
-    ctor.prototype = parent.prototype;
-    child.prototype = new ctor;
-    child.__super__ = parent.prototype;
-    return child;
-  };
-  window.wtc = window.wtc || {};
-  window.wtc.controller = window.wtc.controller || {};
+    else {
+      console.log('%cIntersection Observers not supported', 'color: red');
+      this.runAnimation(100, 100, 100);
+    }
 
-  return (function($, NS)
-  {
-    var $w;
-    $w = $(window);
 
-    NS.ViewportManager = (function()
-    {
-      var ViewportManagerPrivate, instance, selector, vpSelector;
-      function ViewportManager() {}
-      instance = null;
-      selector = '#viewport-container';
-      vpSelector = '.viewport';
-      ViewportManagerPrivate = (function()
-      {
-        function ViewportManagerPrivate($element)
-        {
-          var op;
-          this.$element = $element;
-          this.reverse = ($element.attr('data-reverse') && $element.attr('data-reverse') == 'true') ? true : false;
-          op = this;
-          $w.resize(function(e)
-          {
-            return op.resize(e);
-          }).resize();
-          setTimeout(function()
-          {
-            return $w.resize();
-          }, 500);
-          window.wtc.utilities.Scroller.bind('scroll', function()
-          {
-            var args;
-            args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-            return op.onScroll.apply(op, args);
-          });
-          this.VPs = [];
-        }
-        ViewportManagerPrivate.prototype.tidy = function()
-        {
-          var VP, _i, _len, _ref;
-          if (!this.VPs || !this.VPs.length) {
-            return;
-          }
-          _ref = this.VPs;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            VP = _ref[_i];
-            VP.tidy();
-          }
-        };
-        ViewportManagerPrivate.prototype.registerViewport = function(VP)
-        {
-          var exists;
-          exists = false;
-          exists = __indexOf.call(this.VPs, VP) >= 0;
-          if (!exists) {
-            this.VPs.push(VP);
-          }
-          VP.ID = this.VPs.length - 1;
-          return VP.ID;
-        };
-        ViewportManagerPrivate.prototype.unregisterViewport = function(VP)
-        {
-          var f;
-          f = this.VPs.filter(function(_vp) {
-            return _vp !== VP;
-          });
-          this.VPs = f;
-        };
-        ViewportManagerPrivate.prototype.getNextVP = function(ID)
-        {
-          return this.VPs[ID + 1];
-        };
-        ViewportManagerPrivate.prototype.resize = function(e)
-        {
-          $w.trigger('scroll');
-          return $(this.VPs).each(function() {
-            try {
-              return this.resize();
-            } catch (e) {
+    // debug element
+    if(this.element.querySelector('.vp-debug')) {
+      this._debugElement = this.element.querySelector('.vp-debug');
+    }
 
-            }
-          });
-        };
-        ViewportManagerPrivate.prototype.onScroll = function(top, middle, bottom)
-        {
-          var d, per, win_height;
-          top = $w.scrollTop();
-          win_height = $w.height();
-          bottom = win_height + top;
-          middle = top + win_height / 2;
-          d = $(document).height();
-          per = top / (d - win_height);
-          return $(this.VPs).each(function()
-          {
-            var bottomPercent, isOnScreen, middlePercent, topPercent;
-            isOnScreen = this.getIsOnScreen({
-              top: top,
-              bottom: bottom
-            });
-            if (isOnScreen)
-            {
-              topPercent = 0 - ((this.top - bottom) / win_height * 100);
-              bottomPercent = (bottom - this.bottom) / win_height * 100;
-              middlePercent = middle / this.bottom * 100;
-              try
-              {
-                this.runAnimation(topPercent, bottomPercent, middlePercent);
-              } catch (e)
-              {
-                console.warn(this.$element.attr('id'), e.message);
-              }
-            } else
-            {
-              try
-              {
-                this.reset(top < this.bottom);
-              } catch (e)
-              {
-                console.warn(e);
-              }
-            }
-          });
-        };
-        ViewportManagerPrivate.prototype.navigateToNext = function(VP)
-        {
-          var duration, nextVP, now, point;
-          nextVP = this.getNextVP(VP.ID);
-          now = $w.scrollTop();
-          point = nextVP.getOffsetMiddle();
-          duration = (now - point) * 1.5;
-          if (duration < 0) {
-            duration = duration * -1;
-          }
-          return $('body, html').animate({
-            scrollTop: point
-          }, {
-            duration: duration,
-            easing: 'easeOutCubic'
-          });
-        };
-        return ViewportManagerPrivate;
-      })();
-      ViewportManager.get = function(selector)
-      {
-        if (selector === null) {
-          selector = selector;
-        }
-        return instance !== null ? instance : instance = new ViewportManagerPrivate($(selector));
-      };
-      ViewportManager.init = function() {};
+    this.element.classList.add(`${this.classPrefix}--initialised`);
+  }
 
-      return ViewportManager;
-    })();
+  /**
+   * Private methods
+   */
 
-    NS.Viewport = (function()
-    {
-      __extends(Viewport, wtc.controller.ElementController);
-      function Viewport($element)
-      {
-        var op;
-        this.$element = $element;
-        Viewport.__super__.constructor.apply(this, arguments);
-        this.top = null;
-        this.bottom = null;
-        this.height = null;
-        op = this;
-        this.ID = null;
-        NS.ViewportManager.get().registerViewport(op);
+  /**
+   * Listener for the intersection observer callback
+   *
+   * @private
+   * @param  {object} entries   the object that contains all of the elements being calculated by this observer
+   * @param  {object} observer  the observer instance itself
+   * @return void
+   */
+  _onObserve(entries, observer) {
+    // Loop through the entries and set up the playing state based on whether the element is onscreen or not.
+    entries.forEach((entry, i) => {
+      if(entry.isIntersecting) {
+        this.playing = true;
+        this.isOnScreen = true;
+      } else {
+        this.playing = false;
+        this.isOnScreen = false;
       }
-      Viewport.prototype.elementExistsInDOM = function()
-      {
-        var element, exists;
-        exists = this.$element && this.$element[0];
-        if (!exists)
-        {
-          return false;
-        }
-        element = this.$element[0];
-        while (element)
-        {
-          if (element === document)
-          {
-            return true;
-          }
-          element = element.parentNode;
-        }
-        return false;
-      };
-      Viewport.prototype.tidy = function()
-      {
-        var exists;
-        exists = this.elementExistsInDOM();
-        if (!exists) {
-          return NS.ViewportManager.get().unregisterViewport(this);
-        }
-      };
-      Viewport.prototype.resize = function(set)
-      {
-        if (set === null) {
-          set = false;
-        }
-        this.top = this.$element.offset().top;
-        this.height = this.$element.height();
-        this.bottom = this.top + this.height;
-      };
-      Viewport.prototype.getMiddlePoint = function()
-      {
-        return ($w.height() / 2) + $w.scrollTop() - this.$element.offset().top;
-      };
-      Viewport.prototype.getTop = function()
-      {
-        return this.top;
-      };
-      Viewport.prototype.getBottom = function()
-      {
-        return this.bottom;
-      };
-      Viewport.prototype.getOffsetMiddle = function()
-      {
-        return this.$element.offset().top + this.$element.height() / 2;
-      };
-      Viewport.prototype.getIsOnScreen = function(screen)
-      {
-        var _ref, _ref2;
-        if (screen === null)
-        {
-          screen = {};
-        }
-        if ((_ref = screen.top) === null)
-        {
-          screen.top = 0;
-        }
-        if ((_ref2 = screen.bottom) === null)
-        {
-          screen.bottom = 500;
-        }
-        if (!(this.top !== null))
-        {
-          this.resize();
-        }
-        if (this.$element.data().debug === true)
-        {
-          console.warn(' ');
-          console.warn(this.$element.attr('id'));
-          console.warn('-------------------');
-          console.warn("Screen top: " + screen.top);
-          console.warn("My top: " + this.top);
-          console.warn(this.$element.offset().top);
-          console.warn("Screen bottom: " + screen.bottom);
-          console.warn("My bottom: " + this.bottom);
-          console.warn(screen.top <= this.bottom && screen.bottom >= this.top);
-          console.log(this.$element);
-        }
-        if (screen.top <= this.bottom && screen.bottom >= this.top)
-        {
-          return true;
-        } else
-        {
-          return false;
-        }
-      };
-      Viewport.prototype.runAnimation = function(topPercent, bottomPercent, middlePercent)
-      {
-        var classString;
-        if (topPercent > 0)
-        {
-          classString = 'vp-onscreen vp-on-10 vp-on-20 vp-on-30 vp-on-40 vp-on-50 vp-on-60 vp-on-70 vp-on-80 vp-on-90 vp-on-100';
-          classString += ' vp-b-10 vp-b-20 vp-b-30 vp-b-40 vp-b-50 vp-b-60 vp-b-70 vp-b-80 vp-b-90 vp-b-100';
-          if(this.reverse) {
-            this.$element.removeClass(classString);
-          }
-          this.$element.addClass('vp-onscreen');
-          if (topPercent >= 10) {
-            this.$element.addClass('vp-on-10 vp-onf-10');
-            if (topPercent >= 20) {
-              this.$element.addClass('vp-on-20 vp-onf-20');
-              if (topPercent >= 30) {
-                this.$element.addClass('vp-on-30 vp-onf-30');
-                if (topPercent >= 40) {
-                  this.$element.addClass('vp-on-40 vp-onf-40');
-                  if (topPercent >= 50) {
-                    this.$element.addClass('vp-on-50 vp-onf-50');
-                    if (topPercent >= 60) {
-                      this.$element.addClass('vp-on-60 vp-onf-60');
-                      if (topPercent >= 70) {
-                        this.$element.addClass('vp-on-70 vp-onf-70');
-                        if (topPercent >= 80) {
-                          this.$element.addClass('vp-on-80 vp-onf-80');
-                          if (topPercent >= 90) {
-                            this.$element.addClass('vp-on-90 vp-onf-90');
-                            if (topPercent >= 100) {
-                              this.$element.addClass('vp-on-100 vp-onf-100');
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-          if (bottomPercent >= 10) {
-            this.$element.addClass('vp-b-10 vp-bf-10');
-            if (bottomPercent >= 20) {
-              this.$element.addClass('vp-b-20 vp-bf-20');
-              if (bottomPercent >= 30) {
-                this.$element.addClass('vp-b-30 vp-bf-30');
-                if (bottomPercent >= 40) {
-                  this.$element.addClass('vp-b-40 vp-bf-40');
-                  if (bottomPercent >= 50) {
-                    this.$element.addClass('vp-b-50 vp-bf-50');
-                    if (bottomPercent >= 60) {
-                      this.$element.addClass('vp-b-60 vp-bf-60');
-                      if (bottomPercent >= 70) {
-                        this.$element.addClass('vp-b-70 vp-bf-70');
-                        if (bottomPercent >= 80) {
-                          this.$element.addClass('vp-b-80 vp-bf-80');
-                          if (bottomPercent >= 90) {
-                            this.$element.addClass('vp-b-90 vp-bf-90');
-                            if (bottomPercent >= 100) {
-                              return this.$element.addClass('vp-b-100 vp-bf-100');
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        } else
-        {
+    });
+  }
 
-        }
-      };
-      Viewport.prototype.reset = function(fillDirection) {};
+  /**
+   * Listener for the request animation frame loop. This just sets
+   * the scroll position of the window.
+   *
+   * @private
+   * @param  {delta} number   the number of ms that has passed since the RaF started
+   * @return void
+   */
+  _onPlay(delta) {
+    if(this.playing === true) {
+      requestAnimationFrame(this._onPlay);
+    }
+    this.scrollPos = window.scrollY || window.pageYOffset;
+  }
 
-      return Viewport;
-    })();
-  })(jQuery, window.wtc.controller);
-})();
+  /**
+   * Listener for the window resize event. Updates the window height
+   * for the percentile calculations.
+   *
+   * @private
+   * @param  {object} e   the event object from the resize event
+   * @return void
+   */
+  _onResize(e) {
+    this.windowHeight = window.innerHeight;
+  }
+
+  /**
+   * Listener for the tidy timeout loop. This checks whether the
+   * element exists in the dom and removes all of the necessary
+   * traces of it if it doesn't
+   *
+   * @private
+   * @return void
+   */
+  _onTidy() {
+    let exists = this.elementExistsInDOM();
+    if(!exists) {
+      this.tidy();
+    }
+  }
+
+  /**
+   * Getters and setters
+   */
+
+	/**
+	 * (getter/setter) Scroll position. This updates the scroll position
+   * only if it's changed and then calculated the element's top
+   * position based on that.
+	 *
+	 * @type {number}
+   * @default -1
+	 */
+  set scrollPos(value) {
+    if(!isNaN(value) && value != this.scrollPos) {
+      this._scrollPos = value;
+      this.top = this.offsetTop - value;
+    }
+  }
+  get scrollPos() {
+    return this._scrollPos || -1;
+  }
+
+	/**
+	 * (getter) Find the offsetTop to the document top. Loop through the
+   * offset parents of this element and add their tops to the
+   * larger value.
+	 *
+	 * @type {number}
+   * @readonly
+   * @default 0
+	 */
+  get offsetTop() {
+    let el = this.element;
+    let offsetTop = 0;
+    while(el.offsetParent) {
+      offsetTop += el.offsetTop;
+      el = el.offsetParent;
+    }
+    return offsetTop;
+  }
+
+	/**
+	 * (getter/setter) Top position. This updates the element's top
+   * position in pixels only if the value has changed and then
+   * calculates the 3 positional percentages - top, middle and
+   * bottom and then runs the runAnimation method to perform
+   * actions based on these numbers.
+	 *
+	 * @type {number}
+   * @default 0
+	 */
+  set top(value) {
+    if(!isNaN(value) && value != this.top) {
+      this._top = value;
+      // The percentage of the position of the top of the element from the bottom of the screen
+      this._top_percentage = (this.windowHeight - value) / this.windowHeight;
+      // The percentage of the position of the bottom of the element from the top of the sceen.
+      this._bottom_percentage = (value + this.elementHeight) / this.windowHeight;
+      // The percentage of the position of the middle of the element from the bottom of the sceeen
+      this._middle_percentage = (this.windowHeight - (value + this.elementHeight * .5)) / this.windowHeight;
+
+      // Run the animation with these calculated values
+      this.runAnimation(this._top_percentage, this._middle_percentage, this._bottom_percentage);
+    }
+  }
+  get top() {
+    return this._top || 0;
+  }
+
+	/**
+	* (getter/setter) Playing. This is set in response to a callback
+  * on the intersection observer and sets up the RaF loop to
+  * calculate the scroll position and run the animation.
+	*
+	* @type {boolean}
+	* @default false
+	*/
+  set playing(value) {
+    if(this.playing === false && value === true) {
+      requestAnimationFrame(this._onPlay);
+      this._playing = true;
+    } else if(value !== true) {
+      this._playing = false;
+    }
+  }
+  get playing() {
+    return this._playing === true;
+  }
+
+	/**
+	 * (getter/setter) The window height. Used to calculate the
+   * positional percentages.
+	 *
+	 * @type {number}
+   * @default 0
+	 */
+  set windowHeight(value) {
+    if(!isNaN(value)) {
+      this._windowHeight = value;
+    }
+  }
+  get windowHeight() {
+    return this._windowHeight || 0;
+  }
+
+  /**
+   * Element height.
+   *
+   * @readonly
+   * @return {number}  The element's height in pixels
+   */
+  get elementHeight() {
+    return this.element.offsetHeight || 0;
+  }
+
+	/**
+	 * (getter/setter) Sets whether the element is onscreen. This is
+   * set from the intersection observer callback and updates the
+   * classes of the element for use.
+	 *
+	 * @type {boolean}
+   * @default false
+	 */
+  set isOnScreen(value) {
+    this._isOnScreen = value === true;
+    if(value === true) {
+      this.element.classList.add(`${this.classPrefix}--onscreen`);
+    } else {
+      this.element.classList.remove(`${this.classPrefix}--onscreen`);
+    }
+  }
+  get isOnScreen() {
+    return this._isOnScreen === true;
+  }
+
+  set stopTopThreshold(value) {
+    if(!isNaN(value)) {
+      this._stopTopThreshold = Number(value);
+    }
+  }
+  get stopTopThreshold() {
+    return this._stopTopThreshold || null;
+  }
+
+  /**
+   * The array of classes to remove from the element on scroll.
+   *
+   * @readonly
+   * @return {array}  The classes to remove each time the animation loop is run.
+   */
+  get classes() {
+    return this._classList || [];
+  }
+
+	/**
+	 * (getter/setter) Sets the prefix for the css classes for the
+   * element. Setting this will also set the class list.
+	 *
+	 * @type {string}
+   * @default 'vp'
+	 */
+  set classPrefix(value) {
+    if(typeof value === 'string') this._classPrefix = value;
+
+    this._classList = [
+      `${this.classPrefix}--on-10`,
+      `${this.classPrefix}--on-20`,
+      `${this.classPrefix}--on-30`,
+      `${this.classPrefix}--on-40`,
+      `${this.classPrefix}--on-50`,
+      `${this.classPrefix}--on-60`,
+      `${this.classPrefix}--on-70`,
+      `${this.classPrefix}--on-80`,
+      `${this.classPrefix}--on-90`,
+      `${this.classPrefix}--on-100`,
+      `${this.classPrefix}--b-10`,
+      `${this.classPrefix}--b-20`,
+      `${this.classPrefix}--b-30`,
+      `${this.classPrefix}--b-40`,
+      `${this.classPrefix}--b-50`,
+      `${this.classPrefix}--b-60`,
+      `${this.classPrefix}--b-70`,
+      `${this.classPrefix}--b-80`,
+      `${this.classPrefix}--b-90`,
+      `${this.classPrefix}--b-100`
+    ];
+  }
+  get classPrefix() {
+    return this._classPrefix || 'vp';
+  }
+
+	/**
+	 * (getter/setter) Sets the animation callback for custom behaviour.
+   * this function will be called each time the runAnimation function
+   * is called. Any provide function will be bound to this instance
+   * and takes three params:
+   * - topPercent;
+   * - middlePercent; and
+   * - bottomPercent
+	 *
+	 * @type {function}
+   * @default null
+	 */
+  set animationCallback(value) {
+    if(typeof value == 'function') {
+      this._animationCallback = value.bind(this);
+    }
+  }
+  get animationCallback() {
+    return this._animationCallback || null;
+  }
+
+  /**
+   * Public methods
+   */
+
+  /**
+   * This method is called from the run loop and updates the classes
+   * based on the percentages provided to it. This is a public method
+   * and so can be called programatically, but the use-cases for
+   * doing so are limited.
+   *
+   * @param  {number} topPercent      The percentage distance between the top of the element and the bottom of the screen.
+   * @param  {number} middlePercent   The percentage distance between the middle of the element and the bottom of the screen.
+   * @param  {number} bottomPercent   The percentage distance between the bottom of the element and the top of the screen.
+   */
+  runAnimation(topPercent, middlePercent, bottomPercent)
+  {
+    _u.removeClass(this.classes.join(' '), this.element);
+    for(let i = 0; i <= 1; i+=.1) {
+      const perString = Math.round(i*100);
+      if(topPercent >= i) {
+        _u.addClass(`${this.classPrefix}--on-${perString} ${this.classPrefix}--onf-${perString}`, this.element);
+      }
+      if(bottomPercent >= i) {
+        _u.addClass(`${this.classPrefix}--b-${perString} ${this.classPrefix}--bf-${perString}`, this.element);
+      }
+    }
+
+    // If we have an animation callback then call it here.
+    if(this.animationCallback) {
+      this.animationCallback(topPercent, middlePercent, bottomPercent);
+    }
+
+    // If we have stop threshold(s), and we've suprassed them, tidy up
+    if(this.stopTopThreshold && topPercent >= this.stopTopThreshold) {
+      this.tidy();
+      this.element.classList.add(`${this.classPrefix}--thresholdReached`);
+    }
+
+    if(this._debugElement) {
+      this._debugElement.innerHTML = topPercent;
+    }
+  }
+
+  tidy() {
+    this.playing = false;
+    clearInterval(this.tidyInterval);
+    window.removeEventListener('resize', this.onResize);
+    this.element.data = null;
+    this.observer.disconnect();
+  }
+}
+
+// Register
+ExecuteControllers.registerController(Viewport, 'Viewport');
+
+export default Viewport;
