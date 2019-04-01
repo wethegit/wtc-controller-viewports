@@ -1,7 +1,3 @@
-
-> wtc-controller-viewports@2.0.0 document /home/liam/Projects/packages/wtc-controller-viewports
-> jsdoc-render-md src/wtc-controller-viewports.js
-
 ## <a id='Viewport'></a>Viewport
 
 The Viewport class is a controller that provides information on
