@@ -87,7 +87,9 @@ class Viewport extends ElementController {
     this.element.classList.add(`${this.classPrefix}--initialised`);
 
     // This manually sets the initial top offset to provide a single, initial call of the animation event.
-    this.top = this.element.offsetTop - window.scrollY;
+    window.addEventListener('load', () => {
+      this.top = this.element.offsetTop - window.scrollY;
+    });
   }
 
   /**
