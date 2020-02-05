@@ -11,8 +11,11 @@
   - *Edited*          2017-10-05
   - *Version*         1.0.22
 */
-import {default as ElementController, ExecuteControllers}  from 'wtc-controller-element';
-import _u from 'wtc-utility-helpers';
+import {
+  default as ElementController,
+  ExecuteControllers
+} from "wtc-controller-element";
+import _u from "wtc-utility-helpers";
 
 /**
  * The Viewport class is a controller that provides information on
@@ -44,7 +47,7 @@ class Viewport extends ElementController {
     super(element);
 
     // set up the class prefix either data-vppefix. Defaults to "vp"
-    this.classPrefix = settings.vpprefix || 'vp';
+    this.classPrefix = settings.vpprefix || "vp";
 
     // Sets up the stop threshold for the element, if it exists
     this.stopTopThreshold = settings.vpstoptopthreshold;
@@ -57,38 +60,48 @@ class Viewport extends ElementController {
     this._onPlay = this._onPlay.bind(this);
     this._onResize = this._onResize.bind(this);
     this._onTidy = this._onTidy.bind(this);
-    
+
     // Check for tidy up every 5 seconds
     this.tidyInterval = setInterval(this._onTidy, 5000);
 
     // bind the resize handler
-    window.addEventListener('resize', this._onResize);
+    window.addEventListener("resize", this._onResize);
     this._onResize();
 
-    if ('IntersectionObserver' in window) {
+    if ("IntersectionObserver" in window) {
       // create the intersection ovserver
       this.observer = new IntersectionObserver(this._onObserve, {
-          rootMargin: '0%',
-          threshold: [.1]
-        });
+        rootMargin: "0%",
+        threshold: [0.1]
+      });
       this.observer.observe(this.element);
-    }
-    else {
-      console.log('%cIntersection Observers not supported', 'color: red');
+    } else {
+      console.log("%cIntersection Observers not supported", "color: red");
       this.runAnimation(100, 100, 100);
     }
 
-
     // debug element
-    if(this.element.querySelector('.vp-debug')) {
-      this._debugElement = this.element.querySelector('.vp-debug');
+    if (this.element.querySelector(".vp-debug")) {
+      this._debugElement = this.element.querySelector(".vp-debug");
     }
 
     this.element.classList.add(`${this.classPrefix}--initialised`);
 
     // This manually sets the initial top offset to provide a single, initial call of the animation event.
-    window.addEventListener('load', () => {
-      this.top = this.element.offsetTop - window.scrollY;
+    window.addEventListener("load", () => {
+      // Loop through parent nodes of the element
+      // in order to get a top offset which is relative to the document,
+      // as opposed to the immediate offset parent:
+      let element = this.element;
+      let elementOffset = 0;
+
+      while (element !== document.body) {
+        elementOffset += element.offsetTop;
+        element = element.parentNode;
+        if (element === null) break;
+      }
+
+      this.top = elementOffset - window.scrollY;
     });
   }
 
@@ -107,7 +120,7 @@ class Viewport extends ElementController {
   _onObserve(entries, observer) {
     // Loop through the entries and set up the playing state based on whether the element is onscreen or not.
     entries.forEach((entry, i) => {
-      if(entry.isIntersecting) {
+      if (entry.isIntersecting) {
         this.playing = true;
         this.isOnScreen = true;
       } else {
@@ -126,7 +139,7 @@ class Viewport extends ElementController {
    * @return void
    */
   _onPlay(delta) {
-    if(this.playing === true) {
+    if (this.playing === true) {
       requestAnimationFrame(this._onPlay);
     }
     this.scrollPos = window.scrollY || window.pageYOffset;
@@ -154,7 +167,7 @@ class Viewport extends ElementController {
    */
   _onTidy() {
     let exists = this.elementExistsInDOM();
-    if(!exists) {
+    if (!exists) {
       this.tidy();
     }
   }
@@ -163,16 +176,16 @@ class Viewport extends ElementController {
    * Getters and setters
    */
 
-	/**
-	 * (getter/setter) Scroll position. This updates the scroll position
+  /**
+   * (getter/setter) Scroll position. This updates the scroll position
    * only if it's changed and then calculated the element's top
    * position based on that.
-	 *
-	 * @type {number}
+   *
+   * @type {number}
    * @default -1
-	 */
+   */
   set scrollPos(value) {
-    if(!isNaN(value) && value != this.scrollPos) {
+    if (!isNaN(value) && value != this.scrollPos) {
       this._scrollPos = value;
       this.top = this.offsetTop - value;
     }
@@ -181,66 +194,73 @@ class Viewport extends ElementController {
     return this._scrollPos || -1;
   }
 
-	/**
-	 * (getter) Find the offsetTop to the document top. Loop through the
+  /**
+   * (getter) Find the offsetTop to the document top. Loop through the
    * offset parents of this element and add their tops to the
    * larger value.
-	 *
-	 * @type {number}
+   *
+   * @type {number}
    * @readonly
    * @default 0
-	 */
+   */
   get offsetTop() {
     let el = this.element;
     let offsetTop = 0;
-    while(el.offsetParent) {
+    while (el.offsetParent) {
       offsetTop += el.offsetTop;
       el = el.offsetParent;
     }
     return offsetTop;
   }
 
-	/**
-	 * (getter/setter) Top position. This updates the element's top
+  /**
+   * (getter/setter) Top position. This updates the element's top
    * position in pixels only if the value has changed and then
    * calculates the 3 positional percentages - top, middle and
    * bottom and then runs the runAnimation method to perform
    * actions based on these numbers.
-	 *
-	 * @type {number}
+   *
+   * @type {number}
    * @default 0
-	 */
+   */
   set top(value) {
-    if(!isNaN(value) && value != this.top) {
+    if (!isNaN(value) && value != this.top) {
       this._top = value;
       // The percentage of the position of the top of the element from the bottom of the screen
       this._top_percentage = (this.windowHeight - value) / this.windowHeight;
       // The percentage of the position of the bottom of the element from the top of the sceen.
-      this._bottom_percentage = (value + this.elementHeight) / this.windowHeight;
+      this._bottom_percentage =
+        (value + this.elementHeight) / this.windowHeight;
       // The percentage of the position of the middle of the element from the bottom of the sceeen
-      this._middle_percentage = (this.windowHeight - (value + this.elementHeight * .5)) / this.windowHeight;
+      this._middle_percentage =
+        (this.windowHeight - (value + this.elementHeight * 0.5)) /
+        this.windowHeight;
 
       // Run the animation with these calculated values
-      this.runAnimation(this._top_percentage, this._middle_percentage, this._bottom_percentage);
+      this.runAnimation(
+        this._top_percentage,
+        this._middle_percentage,
+        this._bottom_percentage
+      );
     }
   }
   get top() {
     return this._top || 0;
   }
 
-	/**
-	* (getter/setter) Playing. This is set in response to a callback
-  * on the intersection observer and sets up the RaF loop to
-  * calculate the scroll position and run the animation.
-	*
-	* @type {boolean}
-	* @default false
-	*/
+  /**
+   * (getter/setter) Playing. This is set in response to a callback
+   * on the intersection observer and sets up the RaF loop to
+   * calculate the scroll position and run the animation.
+   *
+   * @type {boolean}
+   * @default false
+   */
   set playing(value) {
-    if(this.playing === false && value === true) {
+    if (this.playing === false && value === true) {
       requestAnimationFrame(this._onPlay);
       this._playing = true;
-    } else if(value !== true) {
+    } else if (value !== true) {
       this._playing = false;
     }
   }
@@ -248,15 +268,15 @@ class Viewport extends ElementController {
     return this._playing === true;
   }
 
-	/**
-	 * (getter/setter) The window height. Used to calculate the
+  /**
+   * (getter/setter) The window height. Used to calculate the
    * positional percentages.
-	 *
-	 * @type {number}
+   *
+   * @type {number}
    * @default 0
-	 */
+   */
   set windowHeight(value) {
-    if(!isNaN(value)) {
+    if (!isNaN(value)) {
       this._windowHeight = value;
     }
   }
@@ -274,17 +294,17 @@ class Viewport extends ElementController {
     return this.element.offsetHeight || 0;
   }
 
-	/**
-	 * (getter/setter) Sets whether the element is onscreen. This is
+  /**
+   * (getter/setter) Sets whether the element is onscreen. This is
    * set from the intersection observer callback and updates the
    * classes of the element for use.
-	 *
-	 * @type {boolean}
+   *
+   * @type {boolean}
    * @default false
-	 */
+   */
   set isOnScreen(value) {
     this._isOnScreen = value === true;
-    if(value === true) {
+    if (value === true) {
       this.element.classList.add(`${this.classPrefix}--onscreen`);
     } else {
       this.element.classList.remove(`${this.classPrefix}--onscreen`);
@@ -295,7 +315,7 @@ class Viewport extends ElementController {
   }
 
   set stopTopThreshold(value) {
-    if(!isNaN(value)) {
+    if (!isNaN(value)) {
       this._stopTopThreshold = Number(value);
     }
   }
@@ -313,15 +333,15 @@ class Viewport extends ElementController {
     return this._classList || [];
   }
 
-	/**
-	 * (getter/setter) Sets the prefix for the css classes for the
+  /**
+   * (getter/setter) Sets the prefix for the css classes for the
    * element. Setting this will also set the class list.
-	 *
-	 * @type {string}
+   *
+   * @type {string}
    * @default 'vp'
-	 */
+   */
   set classPrefix(value) {
-    if(typeof value === 'string') this._classPrefix = value;
+    if (typeof value === "string") this._classPrefix = value;
 
     this._classList = [
       `${this.classPrefix}--on-10`,
@@ -347,23 +367,23 @@ class Viewport extends ElementController {
     ];
   }
   get classPrefix() {
-    return this._classPrefix || 'vp';
+    return this._classPrefix || "vp";
   }
 
-	/**
-	 * (getter/setter) Sets the animation callback for custom behaviour.
+  /**
+   * (getter/setter) Sets the animation callback for custom behaviour.
    * this function will be called each time the runAnimation function
    * is called. Any provide function will be bound to this instance
    * and takes three params:
    * - topPercent;
    * - middlePercent; and
    * - bottomPercent
-	 *
-	 * @type {function}
+   *
+   * @type {function}
    * @default null
-	 */
+   */
   set animationCallback(value) {
-    if(typeof value == 'function') {
+    if (typeof value == "function") {
       this._animationCallback = value.bind(this);
     }
   }
@@ -385,31 +405,36 @@ class Viewport extends ElementController {
    * @param  {number} middlePercent   The percentage distance between the middle of the element and the bottom of the screen.
    * @param  {number} bottomPercent   The percentage distance between the bottom of the element and the top of the screen.
    */
-  runAnimation(topPercent, middlePercent, bottomPercent)
-  {
-    _u.removeClass(this.classes.join(' '), this.element);
-    for(let i = 0; i <= 1; i+=.1) {
-      const perString = Math.round(i*100);
-      if(topPercent >= i) {
-        _u.addClass(`${this.classPrefix}--on-${perString} ${this.classPrefix}--onf-${perString}`, this.element);
+  runAnimation(topPercent, middlePercent, bottomPercent) {
+    _u.removeClass(this.classes.join(" "), this.element);
+    for (let i = 0; i <= 1; i += 0.1) {
+      const perString = Math.round(i * 100);
+      if (topPercent >= i) {
+        _u.addClass(
+          `${this.classPrefix}--on-${perString} ${this.classPrefix}--onf-${perString}`,
+          this.element
+        );
       }
-      if(bottomPercent >= i) {
-        _u.addClass(`${this.classPrefix}--b-${perString} ${this.classPrefix}--bf-${perString}`, this.element);
+      if (bottomPercent >= i) {
+        _u.addClass(
+          `${this.classPrefix}--b-${perString} ${this.classPrefix}--bf-${perString}`,
+          this.element
+        );
       }
     }
 
     // If we have an animation callback then call it here.
-    if(this.animationCallback) {
+    if (this.animationCallback) {
       this.animationCallback(topPercent, middlePercent, bottomPercent);
     }
 
     // If we have stop threshold(s), and we've suprassed them, tidy up
-    if(this.stopTopThreshold && topPercent >= this.stopTopThreshold) {
+    if (this.stopTopThreshold && topPercent >= this.stopTopThreshold) {
       this.tidy();
       this.element.classList.add(`${this.classPrefix}--thresholdReached`);
     }
 
-    if(this._debugElement) {
+    if (this._debugElement) {
       this._debugElement.innerHTML = topPercent;
     }
   }
@@ -417,13 +442,13 @@ class Viewport extends ElementController {
   tidy() {
     this.playing = false;
     clearInterval(this.tidyInterval);
-    window.removeEventListener('resize', this.onResize);
+    window.removeEventListener("resize", this.onResize);
     this.element.data = null;
     this.observer.disconnect();
   }
 }
 
 // Register
-ExecuteControllers.registerController(Viewport, 'Viewport');
+ExecuteControllers.registerController(Viewport, "Viewport");
 
 export default Viewport;
