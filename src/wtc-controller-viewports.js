@@ -98,6 +98,7 @@ class Viewport extends ElementController {
       while (element !== document.body) {
         elementOffset += element.offsetTop;
         element = element.parentNode;
+        if (element === null) break;
       }
 
       this.top = elementOffset - window.scrollY;
