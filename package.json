@@ -1,6 +1,6 @@
 {
   "name": "wtc-controller-viewports",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "A viewport class for controlling elements on scroll.",
   "main": "dist/wtc-controller-viewports.js",
   "scripts": {
