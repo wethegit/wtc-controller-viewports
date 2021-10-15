@@ -404,17 +404,19 @@ class Viewport {
    * @param  {number} bottomPercent   The percentage distance between the bottom of the element and the top of the screen.
    */
   runAnimation(topPercent, middlePercent, bottomPercent) {
-    this.element.classList.remove(this.classes.join(" "));
+    this.element.classList.remove(...this.classes);
     for (let i = 0; i <= 1; i += 0.1) {
       const perString = Math.round(i * 100);
       if (topPercent >= i) {
         this.element.classList.add(
-          `${this.classPrefix}--on-${perString} ${this.classPrefix}--onf-${perString}`
+          `${this.classPrefix}--on-${perString}`,
+          `${this.classPrefix}--onf-${perString}`
         );
       }
       if (bottomPercent >= i) {
         this.element.classList.add(
-          `${this.classPrefix}--b-${perString} ${this.classPrefix}--bf-${perString}`
+          `${this.classPrefix}--b-${perString}`,
+          `${this.classPrefix}--bf-${perString}`
         );
       }
     }
