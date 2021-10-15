@@ -5,34 +5,23 @@
   - *email*           liam@wethecollective.com
   - *Created*         2015-10-07 10:33:20
   - *namespace*       com.wtc.utilities
-  - *Requirements*    jquery   ElementController   wethecollective.utilities.Scroller
   - *Description*     These are two classes that are used for inserting and maintinaing viewports. This is useful for running code when the user scrolls a particular viewport into view.
   - *Edited by*       liamegan
   - *Edited*          2017-10-05
   - *Version*         1.0.22
 */
-import {
-  default as ElementController,
-  ExecuteControllers
-} from "wtc-controller-element";
-import _u from "wtc-utility-helpers";
 
 /**
  * The Viewport class is a controller that provides information on
  * the position of the element within the window. It does this through
  * a combination of IntersectionObserver and request animation frame.
  *
- * This class extends the element controller and requires registration
- * with the Execute controllers system in order to be instanciated as
- * a component (ie with <element data-controller="Viewport" />)
- *
  * @class Viewport
- * @augments ElementController
  * @author Liam Egan <liam@wethecollective.com>
  * @version 2.0.0
  * @created Jan 30, 2019
  */
-class Viewport extends ElementController {
+class Viewport {
   /**
    * The Viewport Class constructor
    *
@@ -44,7 +33,7 @@ class Viewport extends ElementController {
    * - `animationCallback`  The function to run on animation. Takes the same three parameters as the runAnimation method
    */
   constructor(element, settings = {}) {
-    super(element);
+    this.element = element;
 
     // set up the class prefix either data-vppefix. Defaults to "vp"
     this.classPrefix = settings.vpprefix || "vp";
@@ -72,7 +61,7 @@ class Viewport extends ElementController {
       // create the intersection ovserver
       this.observer = new IntersectionObserver(this._onObserve, {
         rootMargin: "0%",
-        threshold: [0.1]
+        threshold: [0.1],
       });
       this.observer.observe(this.element);
     } else {
@@ -166,7 +155,16 @@ class Viewport extends ElementController {
    * @return void
    */
   _onTidy() {
-    let exists = this.elementExistsInDOM();
+    let element = this.element;
+    let exists;
+
+    while (element) {
+      if (element === document) {
+        exists = true;
+      }
+      element = element.parentNode;
+    }
+
     if (!exists) {
       this.tidy();
     }
@@ -363,7 +361,7 @@ class Viewport extends ElementController {
       `${this.classPrefix}--b-70`,
       `${this.classPrefix}--b-80`,
       `${this.classPrefix}--b-90`,
-      `${this.classPrefix}--b-100`
+      `${this.classPrefix}--b-100`,
     ];
   }
   get classPrefix() {
@@ -406,19 +404,17 @@ class Viewport extends ElementController {
    * @param  {number} bottomPercent   The percentage distance between the bottom of the element and the top of the screen.
    */
   runAnimation(topPercent, middlePercent, bottomPercent) {
-    _u.removeClass(this.classes.join(" "), this.element);
+    this.element.classList.remove(this.classes.join(" "));
     for (let i = 0; i <= 1; i += 0.1) {
       const perString = Math.round(i * 100);
       if (topPercent >= i) {
-        _u.addClass(
-          `${this.classPrefix}--on-${perString} ${this.classPrefix}--onf-${perString}`,
-          this.element
+        this.element.classList.add(
+          `${this.classPrefix}--on-${perString} ${this.classPrefix}--onf-${perString}`
         );
       }
       if (bottomPercent >= i) {
-        _u.addClass(
-          `${this.classPrefix}--b-${perString} ${this.classPrefix}--bf-${perString}`,
-          this.element
+        this.element.classList.add(
+          `${this.classPrefix}--b-${perString} ${this.classPrefix}--bf-${perString}`
         );
       }
     }
@@ -443,12 +439,8 @@ class Viewport extends ElementController {
     this.playing = false;
     clearInterval(this.tidyInterval);
     window.removeEventListener("resize", this.onResize);
-    this.element.data = null;
     this.observer.disconnect();
   }
 }
-
-// Register
-ExecuteControllers.registerController(Viewport, "Viewport");
 
 export default Viewport;
